@@ -6,10 +6,10 @@ from xml.etree import ElementTree
 import requests
 from src.exceptions import UploadException
 from src.console import console
-from src.languages import has_english_language, has_language, has_language_other_than
+from src.languages import has_english_language, has_language, has_language_other_than, process_desc_language
 from .COMMON import COMMON
 from torf import Torrent
-from aiohttp import ClientSession
+from aiohttp import ClientSession, FormData
 
 
 class NYAA(COMMON):
@@ -24,7 +24,7 @@ class NYAA(COMMON):
 
         self.session_cookie = self.config['TRACKERS'][self.tracker].get('session_cookie')
         self.session = ClientSession(headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36'}, cookies={'session': self.session_cookie} if self.session_cookie else None)
-        self.signature = "----\n[Created by Audionut's Upload Assistant](https://github.com/Audionut/Upload-Assistant)"
+        self.signature = "----\n[Created by a modified version of Audionut's Upload Assistant](https://github.com/Audionut/Upload-Assistant)"
 
     async def edit_torrent(self, meta, tracker, source_flag, torrent_filename="BASE"):
         if os.path.exists(f"{meta['base_dir']}/tmp/{meta['uuid']}/{torrent_filename}.torrent"):
@@ -66,6 +66,13 @@ class NYAA(COMMON):
                 with open(bd_summary_file, 'r', encoding='utf-8') as f:
                     tech_info = f.read()
 
+        if not meta.get('audio_languages') or not meta.get('subtitle_languages'):
+            await process_desc_language(meta, desc=None, tracker=self.tracker)
+
+        if meta.get("subtitle_languages", []):
+            sub_languages = '\n'.join(f"- {lang}" for lang in meta["subtitle_languages"])
+            desc_parts.append(f"## Subtitles\n{sub_languages}\n")
+
         if tech_info:
             desc_parts.append(f"## BD Info\n```\n{tech_info}\n```\n")
 
@@ -73,7 +80,12 @@ class NYAA(COMMON):
         if os.path.exists(mediainfo_file):
             with open(mediainfo_file, 'r', encoding='utf-8') as f:
                 mediainfo_content = f.read()
-            desc_parts.append(f"## MediaInfo\n```\n{mediainfo_content}\n```\n")
+            mediainfo_pieces = mediainfo_content.split('\n\n')
+            kept_pieces = []
+            for mediainfo_piece, mediainfo_piece_json in zip(mediainfo_pieces, meta["mediainfo"]["media"]["track"]):
+                if mediainfo_piece_json["@type"] in ["General", "Video", "Audio"]:
+                    kept_pieces.append(mediainfo_piece)
+            desc_parts.append(f"## MediaInfo\n```\n{"\n\n".join(kept_pieces)}\n```\n")
 
         if self.signature:
             desc_parts.append(self.signature)
@@ -90,7 +102,9 @@ class NYAA(COMMON):
         # tv_pack = meta.get('tv_pack')
         # sd = meta.get('sd')
 
-        mediainfo = meta.get("mediainfo", {})
+        if not meta.get('audio_languages') or not meta.get('subtitle_languages'):
+            await process_desc_language(meta, desc=None, tracker=self.tracker)
+
         has_english_audio_or_sub = await has_english_language(meta.get('audio_languages')) or await has_english_language(meta.get('subtitle_languages'))
         has_non_japanese = await has_language_other_than(meta.get('audio_languages'), 'japanese') or await has_language_other_than(meta.get('subtitle_languages'), 'japanese')
 
@@ -101,7 +115,7 @@ class NYAA(COMMON):
         else:
             return "1_4"
 
-    async def login(self):
+    async def validate_credentials(self, meta):
         if self.session_cookie is None:
             console.print(f"[bold red]Login failed on {self.tracker}: No session cookie provided.[/bold red]")
             return False
@@ -118,7 +132,7 @@ class NYAA(COMMON):
             return []
 
         search_url = f"{self.base_url}/"
-        search_params = {'q': meta["name"]}
+        search_params = {'q': meta["name"], "page": "rss"}
 
         try:
             async with self.session.get(search_url, params=search_params, timeout=15) as response:
@@ -171,7 +185,7 @@ class NYAA(COMMON):
             'display_name': meta['name'],
             'category': cat_id,
             'information': f"https://myanimelist.net/anime/{meta['mal']}" if meta.get('mal') else '',
-            description: description,
+            "description": description,
         }
 
         if is_anonymous:
@@ -186,13 +200,19 @@ class NYAA(COMMON):
         upload_filename = f"{meta['name']}.torrent"
         try:
             with open(torrent_path, 'rb') as torrent_file:
-                files = {'torrent_file': (upload_filename, torrent_file, "application/x-bittorrent")}
+                form_data = FormData()
+                for key, value in data.items():
+                    form_data.add_field(key, value)
+                # files = {'torrent_file': (upload_filename, torrent_file, "application/x-bittorrent")}
+                form_data.add_field("torrent_file", torrent_file, filename=upload_filename)
                 upload_url = f"{self.base_url}/upload"
 
                 if meta['debug'] is False:
-                    async with self.session.post(upload_url, data=data, files=files, timeout=90, allow_redirects=True) as response:
+                    async with self.session.post(upload_url, data=form_data, timeout=90, allow_redirects=True) as response:
+                        with open(f"{meta['base_dir']}/tmp/{meta['uuid']}/upload_response.html", 'w', encoding='utf-8') as f:
+                            f.write(await response.text())
                         response.raise_for_status()
-                        details_url = response.url
+                        details_url = str(response.url)
                         torrent_id = int(re.search(r'/view/(\d+)', str(details_url)).group(1))
                         meta['tracker_status'][self.tracker]['torrent_id'] = torrent_id
                         announce_url = self.announce_url
@@ -203,3 +223,5 @@ class NYAA(COMMON):
                     console.print("Payload (data):", data)
         except Exception as e:
             raise UploadException(f"An unexpected error occurred during upload to {self.tracker}: {e}")
+        finally:
+            await self.session.close()

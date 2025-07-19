@@ -26,6 +26,7 @@ from src.trackers.LST import LST
 from src.trackers.LT import LT
 from src.trackers.MTV import MTV
 from src.trackers.NBL import NBL
+from src.trackers.NYAA import NYAA
 from src.trackers.OE import OE
 from src.trackers.OTW import OTW
 from src.trackers.PSS import PSS
@@ -468,7 +469,7 @@ class TRACKER_SETUP:
 tracker_class_map = {
     'ACM': ACM, 'AITHER': AITHER, 'AL': AL, 'ANT': ANT, 'AR': AR, 'ASC': ASC, 'BHD': BHD, 'BHDTV': BHDTV, 'BLU': BLU, 'BT': BT, 'CBR': CBR,
     'DC': DC, 'DP': DP, 'FNP': FNP, 'FL': FL, 'FRIKI': FRIKI, 'HDB': HDB, 'HDS': HDS, 'HDT': HDT, 'HHD': HHD, 'HUNO': HUNO, 'ITT': ITT,
-    'LCD': LCD, 'LDU': LDU, 'LST': LST, 'LT': LT, 'MTV': MTV, 'NBL': NBL, 'OE': OE, 'OTW': OTW, 'PSS': PSS, 'PT': PT, 'PTP': PTP, 'PTER': PTER, 'PTT': PTT,
+    'LCD': LCD, 'LDU': LDU, 'LST': LST, 'LT': LT, 'MTV': MTV, 'NBL': NBL, "NYAA": NYAA, 'OE': OE, 'OTW': OTW, 'PSS': PSS, 'PT': PT, 'PTP': PTP, 'PTER': PTER, 'PTT': PTT,
     'R4E': R4E, 'RAS': RAS, 'RF': RF, 'RTF': RTF, 'SAM': SAM, 'SHRI': SHRI, 'SN': SN, 'SP': SP, 'SPD': SPD, 'STC': STC, 'THR': THR,
     'TIK': TIK, 'TL': TL, 'TOCA': TOCA, 'TVC': TVC, 'TTG': TTG, 'UHD': UHD, 'ULCX': ULCX, 'UTP': UTP, 'YOINK': YOINK, 'YUS': YUS
 }
@@ -483,5 +484,5 @@ other_api_trackers = {
 }
 
 http_trackers = {
-    'AR', 'ASC', 'BT', 'FL', 'HDB', 'HDS', 'HDT', 'MTV', 'PTER', 'TTG'
+    'AR', 'ASC', 'BT', 'FL', 'HDB', 'HDS', 'HDT', 'MTV', 'PTER', 'TTG', "NYAA"
 }
