@@ -18,86 +18,21 @@ async def get_audio_v2(mi, meta, bdinfo):
         # Channels
         chan = bdinfo.get('audio', [{}])[0].get('channels', '')
     else:
-        track_num = -1
         tracks = mi.get('media', {}).get('track', [])
-        highest_channels = -1
-        original_language = meta.get('original_language', '')
+        audio_tracks = [t for t in tracks if t.get('@type') == "Audio"]
+        first_audio_track = None
+        if audio_tracks:
+            tracks_with_order = [t for t in audio_tracks if t.get('StreamOrder')]
+            if tracks_with_order:
+                first_audio_track = min(tracks_with_order, key=lambda x: int(x.get('StreamOrder', '999')))
+            else:
+                tracks_with_id = [t for t in audio_tracks if t.get('ID')]
+                if tracks_with_id:
+                    first_audio_track = min(tracks_with_id, key=lambda x: int(x.get('ID', '999')))
+                else:
+                    first_audio_track = audio_tracks[0]
 
-        # First try: Find highest channel count track in original language (if known)
-        if original_language:
-            for i, t in enumerate(tracks):
-                if t.get('@type') != "Audio":
-                    continue
-
-                # Skip commentary tracks
-                if "commentary" in (t.get('Title') or '').lower():
-                    continue
-
-                # Check if this is in the original language
-                audio_language = t.get('Language', '')
-                language_match = False
-
-                if isinstance(audio_language, str):
-                    if audio_language.startswith(original_language):
-                        language_match = True
-
-                    # For some language variants
-                    variants = ['zh', 'cn', 'cmn', 'no', 'nb']
-                    if any(audio_language.startswith(var) for var in variants) and any(original_language.startswith(var) for var in variants):
-                        language_match = True
-
-                # Only consider this track if it's in original language
-                if language_match:
-                    # Get channel count
-                    channels = t.get('Channels_Original', t.get('Channels', 0))
-                    try:
-                        if not str(channels).isnumeric():
-                            channels = t.get('Channels', 0)
-                        channels_float = float(str(channels).replace('.1', '.1'))
-                    except (ValueError, TypeError):
-                        channels_float = 0
-
-                    # Update if this has more channels than previous best
-                    if channels_float > highest_channels:
-                        highest_channels = channels_float
-                        track_num = i
-
-        # Second try: If no original language track found or original language not known,
-        # just find the track with highest channel count
-        if track_num == -1:
-            for i, t in enumerate(tracks):
-                if t.get('@type') != "Audio":
-                    continue
-
-                # Skip commentary tracks
-                if "commentary" in (t.get('Title') or '').lower():
-                    continue
-
-                # Get channel count
-                channels = t.get('Channels_Original', t.get('Channels', 0))
-                try:
-                    if not str(channels).isnumeric():
-                        channels = t.get('Channels', 0)
-                    channels_float = float(str(channels).replace('.1', '.1'))
-                except (ValueError, TypeError):
-                    channels_float = 0
-
-                if channels_float > highest_channels:
-                    highest_channels = channels_float
-                    track_num = i
-
-        # Fallback to first audio track if no valid track was found
-        if track_num == -1:
-            for i, t in enumerate(tracks):
-                if t.get('@type') == "Audio":
-                    track_num = i
-                    break
-
-        # If still no audio track found, use track 2 (common index for first audio track)
-        if track_num == -1:
-            track_num = 2
-
-        track = tracks[track_num] if len(tracks) > track_num else {}
+        track = first_audio_track if first_audio_track else {}
         format = track.get('Format', '')
         commercial = track.get('Format_Commercial', '') or track.get('Format_Commercial_IfAny', '')
 
@@ -183,11 +118,6 @@ async def get_audio_v2(mi, meta, bdinfo):
                             console.print(f"[bold red]This release has a(n) {audio_language} audio track, and may be considered bloated")
                             time.sleep(5)
 
-                    if not audio_language:
-                        if meta['debug']:
-                            console.print("DEBUG: Audio language is None or empty, setting to 'und'")
-                        audio_language = "und"
-
                 if (
                     orig_lang == "en"
                     and eng
@@ -197,7 +127,7 @@ async def get_audio_v2(mi, meta, bdinfo):
                     meta['bloated'] = True
                     time.sleep(5)
 
-                if (eng and (orig or non_en_non_commentary)) or (orig and non_en_non_commentary) and len(audio_tracks) > 1:
+                if ((eng and (orig or non_en_non_commentary)) or (orig and non_en_non_commentary)) and len(audio_tracks) > 1 and not meta.get('no_dual', False):
                     dual = "Dual-Audio"
                 elif eng and not orig and orig_lang not in ['zxx', 'xx', 'en', None] and not meta.get('no_dub', False):
                     dual = "Dubbed"
@@ -297,27 +227,3 @@ async def get_audio_v2(mi, meta, bdinfo):
     audio = f"{dual} {codec or ''} {format_settings or ''} {chan or ''}{extra or ''}"
     audio = ' '.join(audio.split())
     return audio, chan, has_commentary
-
-
-async def get_audio_languages(mi, meta):
-    tracks = mi.get('media', {}).get('track', [])
-
-    languages = []
-
-    for i, t in enumerate(tracks):
-        if t.get('@type') != "Audio":
-            continue
-
-        language = t.get('Language', '')
-        if meta['debug']:
-            console.print(f"DEBUG: Track {i} Language = {language} ({type(language)})")
-
-        if isinstance(language, str):  # Normal case
-            languages.append(language.lower())
-        elif isinstance(language, dict):  # Handle unexpected dict case
-            if 'value' in language:  # Check if a known key exists
-                extracted = language['value']
-                if isinstance(extracted, str):
-                    languages.append(extracted.lower())
-
-    return languages
