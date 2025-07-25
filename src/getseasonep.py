@@ -56,8 +56,17 @@ async def get_season_episode(video, meta):
                             season_int = "1"
                             season = "S01"
                     else:
-                        season_int = str(guessit(video)["season"])
-                        season = "S" + season_int.zfill(2)
+                        guessed_season = guessit(video)['season']
+                        if isinstance(guessed_season, list) and len(guessed_season) > 1:
+                            # Multi-season pack
+                            first_season_int = str(guessed_season[0])
+                            last_season_int = str(guessed_season[-1])
+                            season = f"S{first_season_int.zfill(2)}-S{last_season_int.zfill(2)}"
+                            season_int = "0"
+                            meta["is_multi_season"] = True
+                        else:
+                            season_int = str(guessed_season)
+                            season = "S" + season_int.zfill(2)
 
             except Exception:
                 console.print_exception()
