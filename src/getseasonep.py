@@ -47,6 +47,7 @@ async def get_season_episode(video, meta):
                             first_season_int = str(guessed_season[0])
                             last_season_int = str(guessed_season[-1])
                             season = f"S{first_season_int.zfill(2)}-S{last_season_int.zfill(2)}"
+                            season_int = "0"
                             meta["is_multi_season"] = True
                         elif f"s{guessed_season}" in video.lower():
                             season_int = str(guessit(video)["season"])
