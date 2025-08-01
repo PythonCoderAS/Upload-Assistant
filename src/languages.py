@@ -234,11 +234,33 @@ async def process_desc_language(meta, desc=None, tracker=None):
     else:
         return desc if desc is not None else None
 
-
-async def has_english_language(languages):
-    """Check if any language in the list contains 'english'"""
+async def has_language(languages, lang_to_check):
+    """Check if any language in the list matches the given language"""
     if isinstance(languages, str):
         languages = [languages]
     if not languages:
         return False
-    return any('english' in lang.lower() for lang in languages)
+    lang_lower = lang_to_check.lower()
+    return any(lang_lower in lang.lower() for lang in languages)
+
+async def has_language_other_than(languages, lang_to_check):
+    """Check if any language in the list does not match the given language"""
+    if isinstance(languages, str):
+        languages = [languages]
+    if not languages:
+        return False
+    lang_lower = lang_to_check.lower()
+    return any(lang_lower not in lang.lower() for lang in languages)
+
+async def doesnt_have_language(languages, lang_to_check):
+    """Check if no language in the list matches the given language"""
+    if isinstance(languages, str):
+        languages = [languages]
+    if not languages:
+        return True
+    lang_lower = lang_to_check.lower()
+    return all(lang_lower not in lang.lower() for lang in languages)
+
+async def has_english_language(languages):
+    """Check if any language in the list contains 'english'"""
+    return await has_language(languages, 'english')
