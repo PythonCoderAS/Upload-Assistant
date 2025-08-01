@@ -559,7 +559,6 @@ class Clients():
                                     console.print(f"[green]File copied instead: {dst}")
                             else:
                                 # For directories, we need to link each file inside
-                                console.print("[yellow]Cannot hardlink directories directly. Creating directory structure...")
                                 os.makedirs(dst, exist_ok=True)
 
                                 for root, _, files in os.walk(src):
@@ -1565,7 +1564,9 @@ class Clients():
 
                     if is_disc in ("", None) and len(meta.get('filelist', [])) == 1:
                         file_name = os.path.basename(meta['filelist'][0])
-                        if (torrent_name == meta['uuid'] or torrent_name == file_name) and len(torrent.files) == 1:
+                        if (torrent_name == file_name) and len(torrent.files) == 1:
+                            is_match = True
+                        elif torrent_name == meta['uuid']:
                             is_match = True
                     else:
                         if torrent_name == meta['uuid']:

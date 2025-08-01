@@ -83,6 +83,8 @@ async def process_desc_language(meta, desc=None, tracker=None):
         meta['unattended_subtitle_skip'] = False
     if 'no_subs' not in meta:
         meta['no_subs'] = False
+    if 'write_hc_languages' not in meta:
+        meta['write_hc_languages'] = False
     if not meta['is_disc'] == "BDMV":
         try:
             parsed_info = await parsed_mediainfo(meta)
@@ -148,7 +150,20 @@ async def process_desc_language(meta, desc=None, tracker=None):
                                 meta['subtitle_languages'].append(text_track['language'])
                             if meta['subtitle_languages']:
                                 meta['subtitle_languages'] = [lang.split()[0] for lang in meta['subtitle_languages']]
-                    else:
+                    if meta.get('hardcoded-subs', False):
+                        if not meta['unattended'] or (meta['unattended'] and meta.get('unattended-confirm', False)):
+                            hc_lang = cli_ui.ask_string("What language/s are the hardcoded subtitles?")
+                            if hc_lang:
+                                meta['subtitle_languages'] = [hc_lang]
+                                meta['write_hc_languages'] = True
+                            else:
+                                meta['subtitle_languages'] = None
+                                meta['unattended_subtitle_skip'] = True
+                                meta['tracker_status'][tracker]['skip_upload'] = True
+                        else:
+                            meta['subtitle_languages'] = "English"
+                            meta['write_hc_languages'] = True
+                    if 'text' not in parsed_info and not meta.get('hardcoded-subs', False):
                         meta['no_subs'] = True
 
             if meta['audio_languages'] and meta['write_audio_languages'] and desc is not None:
@@ -156,6 +171,8 @@ async def process_desc_language(meta, desc=None, tracker=None):
 
             if meta['subtitle_languages'] and meta['write_subtitle_languages'] and desc is not None:
                 await desc.write(f"[code]Subtitle Language/s: {', '.join(meta['subtitle_languages'])}[/code]\n")
+            if meta['subtitle_languages'] and meta['write_hc_languages'] and desc is not None:
+                await desc.write(f"[code]Hardcoded Subtitle Language/s: {', '.join(meta['subtitle_languages'])}[/code]\n")
 
         except Exception as e:
             console.print(f"[red]Error processing mediainfo languages: {e}[/red]")
@@ -199,9 +216,6 @@ async def process_desc_language(meta, desc=None, tracker=None):
                         else:
                             audio_languages.discard(lang) if isinstance(audio_languages, set) else audio_languages.remove(lang)
                         meta['bluray_audio_skip'] = True
-                else:
-                    audio_languages.discard(lang) if isinstance(audio_languages, set) else audio_languages.remove(lang)
-                    meta['bluray_audio_skip'] = True
 
             subtitle_tracks = bdinfo.get("subtitles", [])
             if subtitle_tracks and isinstance(subtitle_tracks[0], dict):

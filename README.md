@@ -1,4 +1,4 @@
-[![Create and publish a Docker image](https://github.com/Audionut/Upload-Assistant/actions/workflows/docker-image.yml/badge.svg?branch=master)](https://github.com/Audionut/Upload-Assistant/actions/workflows/docker-image.yml) [![Test run (Master Branch)](https://img.shields.io/github/actions/workflow/status/Audionut/Upload-Assistant/test-run.yaml?branch=master&label=Test%20run%20(Master%20Branch%202025-07-04%2006:06%20UTC))](https://github.com/Audionut/Upload-Assistant/actions/workflows/test-run.yaml?query=branch%3Amaster) [![Test run (5.1.4.1)](https://img.shields.io/github/actions/workflow/status/Audionut/Upload-Assistant/test-run.yaml?branch=5.1.4.1&label=Test%20run%20(5.1.4.1%202025-07-11%2002:25%20UTC))](https://github.com/Audionut/Upload-Assistant/actions/workflows/test-run.yaml?query=branch%3A5.1.4.1)
+[![Create and publish a Docker image](https://github.com/Audionut/Upload-Assistant/actions/workflows/docker-image.yml/badge.svg?branch=master)](https://github.com/Audionut/Upload-Assistant/actions/workflows/docker-image.yml) [![Test run (Master Branch)](https://img.shields.io/github/actions/workflow/status/Audionut/Upload-Assistant/test-run.yaml?branch=master&label=Test%20run%20(Master%20Branch%202025-07-04%2006:06%20UTC))](https://github.com/Audionut/Upload-Assistant/actions/workflows/test-run.yaml?query=branch%3Amaster) [![Test run (5.1.5.2)](https://img.shields.io/github/actions/workflow/status/Audionut/Upload-Assistant/test-run.yaml?branch=5.1.5.2&label=Test%20run%20(5.1.5.2%202025-07-19%2014:24%20UTC))](https://github.com/Audionut/Upload-Assistant/actions/workflows/test-run.yaml?query=branch%3A5.1.5.2)
 
 Discord support https://discord.gg/QHHAZu7e2A
 
@@ -26,10 +26,45 @@ Better just to be on this fork and bug me about my bugs, rather than bugging som
   - Can automagically search qBitTorrent version 5+ clients for matching existing torrent.
   - Generates proper name for your upload using Mediainfo/BDInfo and TMDb/IMDb conforming to site rules.
   - Checks for existing releases already on site.
-  - Uploads to ACM/Aither/AL/ANT/AR/ASC/BHD/BHDTV/BLU/BT/CBR/DC/DP/FRIKI/FNP/FL/HDB/HDS/HDT/HHD/HP/HUNO/ITT/LCD/LDU/LST/LT/MTV/NBL/OE/OTW/PSS/PT/PTP/PTER/PTT/RF/R4E(limited)/RAS/RTF/SAM/SHRI/SN/SP/SPD/STC/STT/TLC/THR/TL/TOCA/TVC/TTG/UHD/ULCX/UTP/YOINK/YUS
   - Adds to your client with fast resume, seeding instantly (rtorrent/qbittorrent/deluge/watch folder).
   - ALL WITH MINIMAL INPUT!
   - Currently works with .mkv/.mp4/Blu-ray/DVD/HD-DVDs.
+
+## Supported Sites:
+<table>
+  <tr>
+    <td align="center"><b>Name</b></td><td align="center"><b>Acronym</b></td>
+    <td align="center"><b>Name</b></td><td align="center"><b>Acronym</b></td>
+  </tr>
+  <tr><td>Aither</td><td>AITHER</td><td>Alpharatio</td><td>AR</td></tr>
+  <tr><td>Amigos Share Club</td><td>ASC</td><td>AnimeLovers</td><td>AL</td></tr>
+  <tr><td>Anthelion</td><td>ANT</td><td>AsianCinema</td><td>ACM</td></tr>
+  <tr><td>Beyond-HD</td><td>BHD</td><td>BitHDTV</td><td>BHDTV</td></tr>
+  <tr><td>Blutopia</td><td>BLU</td><td>BrasilTracker</td><td>BT</td></tr>
+  <tr><td>CapybaraBR</td><td>CBR</td><td>Cinematik</td><td>TIK</td></tr>
+  <tr><td>DarkPeers</td><td>DP</td><td>DigitalCore</td><td>DC</td></tr>
+  <tr><td>FearNoPeer</td><td>FNP</td><td>FileList</td><td>FL</td></tr>
+  <tr><td>Friki</td><td>FRIKI</td><td>hawke-uno</td><td>HUNO</td></tr>
+  <tr><td>HDBits</td><td>HDB</td><td>HD-Space</td><td>HDS</td></tr>
+  <tr><td>HD-Torrents</td><td>HDT</td><td>HomieHelpDesk</td><td>HHD</td></tr>
+  <tr><td>ItaTorrents</td><td>ITT</td><td>Last Digital Underground</td><td>LDU</td></tr>
+  <tr><td>Lat-Team</td><td>LT</td><td>Locadora</td><td>LCD</td></tr>
+  <tr><td>LST</td><td>LST</td><td>MoreThanTV</td><td>MTV</td></tr>
+  <tr><td>Nebulance</td><td>NBL</td><td>OldToonsWorld</td><td>OTW</td></tr>
+  <tr><td>OnlyEncodes+</td><td>OE</td><td>PassThePopcorn</td><td>PTP</td></tr>
+  <tr><td>Polish Torrent</td><td>PTT</td><td>Portugas</td><td>PT</td></tr>
+  <tr><td>PrivateSilverScreen</td><td>PSS</td><td>PTerClub</td><td>PTER</td></tr>
+  <tr><td>Racing4Everyone</td><td>R4E</td><td>Rastastugan</td><td>RAS</td></tr>
+  <tr><td>ReelFLiX</td><td>RF</td><td>RetroFlix</td><td>RTF</td></tr>
+  <tr><td>Samaritano</td><td>SAM</td><td>seedpool</td><td>SP</td></tr>
+  <tr><td>Shareisland</td><td>SHRI</td><td>SkipTheCommericals</td><td>STC</td></tr>
+  <tr><td>SpeedApp</td><td>SPD</td><td>Swarmazon</td><td>SN</td></tr>
+  <tr><td>Toca Share</td><td>TOCA</td><td>TorrentHR</td><td>THR</td></tr>
+  <tr><td>TorrentLeech</td><td>TL</td><td>ToTheGlory</td><td>TTG</td></tr>
+  <tr><td>TVChaosUK</td><td>TVC</td><td>UHDShare</td><td>UHD</td></tr>
+  <tr><td>ULCX</td><td>ULCX</td><td>UTOPIA</td><td>UTP</td></tr>
+  <tr><td>YOiNKED</td><td>YOINK</td><td>YUSCENE</td><td>YUS</td></tr>
+</table>
 
 ## **Setup:**
    - **REQUIRES AT LEAST PYTHON 3.9 AND PIP3**
@@ -37,11 +72,16 @@ Better just to be on this fork and bug me about my bugs, rather than bugging som
    - Also needs MediaInfo and ffmpeg installed on your system
       - On Windows systems, ffmpeg must be added to PATH (https://windowsloop.com/install-ffmpeg-windows-10/)
       - On linux systems, get it from your favorite package manager
-   - Clone the repo to your system `git clone https://github.com/Audionut/Upload-Assistant.git` 
-      - or download a zip of the source
+      - If you have issues with ffmpeg, such as `max workers` errors, see this [wiki](https://github.com/Audionut/Upload-Assistant/wiki/ffmpeg---max-workers-issues)
+   - Get the source:
+      - Clone the repo to your system `git clone https://github.com/Audionut/Upload-Assistant.git`
+      - Fetch all of the release tags `git fetch --all --tags`
+      - Check out the specifc release: see [releases](https://github.com/Audionut/Upload-Assistant/releases)
+      - `git checkout tags/tagname` where `tagname` is the release name, eg `v5.0.0`
+      - or download a zip of the source from the releases page and create/overwrite a local copy.
    - Install necessary python modules `pip3 install --user -U -r requirements.txt`
       - `sudo apt install pip` if needed
-  - If you receive an error about externally managed environment
+  - If you receive an error about externally managed environment, or otherwise wish to keep UA python separate:
       - Install virtual python environment `python3 -m venv venv`
       - Activate the virtual environment `source venv/bin/activate`
       - Then install the requirements `pip install -r requirements.txt`
@@ -58,14 +98,15 @@ Better just to be on this fork and bug me about my bugs, rather than bugging som
 
 ## **Updating:**
   - To update first navigate into the Upload-Assistant directory: `cd Upload-Assistant`
-  - Run a `git pull` to grab latest updates
-  - Or download a fresh zip and overwrite existing files
+  - `git fetch --all --tags`
+  - `git checkout tags/tagname`
+  - Or download a fresh zip from the releases page and overwrite existing files
   - Run `python3 -m pip install --user -U -r requirements.txt` to ensure dependencies are up to date
   - Run `python3 config-generator.py` and select to grab new UA config options.
 
 ## **CLI Usage:**
   
-  `python3 upload.py "/downloads/path/to/content" --args`
+  `python3 upload.py "/path/to/content" --args`
   
   Args are OPTIONAL and ALWAYS follow path, for a list of acceptable args, pass `--help`.
   Path works best in quotes.

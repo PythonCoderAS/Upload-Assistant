@@ -105,7 +105,7 @@ class ASC(COMMON):
 
     def get_type_id(self, meta):
         qualidade_map_disc = {"BD25": "40", "BD50": "41", "BD66": "42", "BD100": "43"}
-        qualidade_map_files = {"ENCODE": "9", "REMUX": "39", "WEBDL": "23", "WEBRIP": "38", "BDRIP": "8", "DVDRIP": "10"}
+        qualidade_map_files = {"ENCODE": "9", "REMUX": "39", "WEBDL": "23", "WEBRIP": "38", "BDRIP": "8", "DVDRIP": "3"}
         qualidade_map_dvd = {"DVD5": "45", "DVD9": "46"}
 
         if meta['type'] == 'DISC':
@@ -377,20 +377,14 @@ class ASC(COMMON):
 
         # Episode
         if self.category == 'TV' and episode_tmdb:
-            episode_overview = episode_tmdb.get('overview', '')
-            episode_name = episode_tmdb.get('name', '')
-            still_url = "https://image.tmdb.org/t/p/w300"
-            still_path = episode_tmdb.get('still_path', '')
-            still = f"{still_url}{still_path}" if still_path else None
+            episode_name = episode_tmdb.get('name')
+            episode_overview = episode_tmdb.get('overview')
+            still_path = episode_tmdb.get('still_path')
 
-            if episode_name:
+            if episode_name and episode_overview and still_path:
+                still_url = f"https://image.tmdb.org/t/p/w300{still_path}"
                 description_parts.append(f"\n[size=4][b]Episódio:[/b] {episode_name}[/size]\n")
-
-            if episode_overview:
-                if still:
-                    description_parts.append(f"\n{self.format_image(still)}\n\n{episode_overview}\n")
-                else:
-                    description_parts.append(f"\n{episode_overview}\n")
+                description_parts.append(f"\n{self.format_image(still_url)}\n\n{episode_overview}\n")
 
         # Technical Sheet
         if main_tmdb:
@@ -412,9 +406,9 @@ class ASC(COMMON):
             append_section('BARRINHA_FICHA_TECNICA', "\n".join(filter(None, sheet_items)))
 
         # Production Companies
-        if main_tmdb.get('production_companies'):
+        if main_tmdb and main_tmdb.get('production_companies'):
             prod_parts = ["[size=4][b]Produtoras[/b][/size]"]
-            for p in main_tmdb['production_companies']:
+            for p in main_tmdb.get('production_companies', []):
                 logo_path = p.get('logo_path')
                 logo = self.format_image(f"https://image.tmdb.org/t/p/w45{logo_path}") if logo_path else ''
 
@@ -423,17 +417,17 @@ class ASC(COMMON):
 
         # Cast
         if self.category == 'MOVIE':
-            cast_data = (main_tmdb.get('credits') or {}).get('cast', [])
+            cast_data = ((main_tmdb or {}).get('credits') or {}).get('cast', [])
         elif meta.get('tv_pack'):
-            cast_data = (season_tmdb.get('credits') or {}).get('cast', [])
+            cast_data = ((season_tmdb or {}).get('credits') or {}).get('cast', [])
         else:
-            cast_data = (episode_tmdb.get('credits') or {}).get('cast', [])
+            cast_data = ((episode_tmdb or {}).get('credits') or {}).get('cast', [])
         append_section('BARRINHA_ELENCO', self.build_cast_bbcode(cast_data))
 
         # Seasons
-        if self.category == 'TV' and main_tmdb.get('seasons'):
+        if self.category == 'TV' and main_tmdb and main_tmdb.get('seasons'):
             seasons_content = []
-            for seasons in main_tmdb['seasons']:
+            for seasons in main_tmdb.get('seasons', []):
                 season_name = seasons.get('name', f"Temporada {seasons.get('season_number')}").strip()
                 poster_temp = self.format_image(f"https://image.tmdb.org/t/p/w185{seasons.get('poster_path')}") if seasons.get('poster_path') else ''
                 overview_temp = f"\n\nSinopse:\n{seasons.get('overview')}" if seasons.get('overview') else ''
@@ -549,7 +543,7 @@ class ASC(COMMON):
             if youtube_code:
                 data['tube'] = f"http://www.youtube.com/watch?v={youtube_code}"
             else:
-                data['tube'] = meta.get('youtube', '')
+                data['tube'] = meta.get('youtube') or ''
 
             # Resolution
             width, hight = self.get_res_id(meta)
@@ -601,6 +595,7 @@ class ASC(COMMON):
 
         if meta.get('debug', False):
             console.print(data)
+            meta['tracker_status'][self.tracker]['status_message'] = "Debug mode enabled, not uploading."
             return
 
         torrent_path = f"{meta['base_dir']}/tmp/{meta['uuid']}/[{self.tracker}].torrent"

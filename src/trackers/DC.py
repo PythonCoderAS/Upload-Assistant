@@ -254,6 +254,8 @@ class DC(COMMON):
             else:
                 upload_filename = f"{base_name}.torrent"
 
+            upload_filename = upload_filename.replace('.mkv', '').replace('.mp4', '')
+
             with open(torrent_path, 'rb') as torrent_file:
                 files = {'file': (upload_filename, torrent_file, "application/x-bittorrent")}
                 upload_url = f"{self.api_base_url}/torrents/upload"
@@ -277,6 +279,7 @@ class DC(COMMON):
                     console.print(f"[bold blue]Debug Mode: Upload to {self.tracker} was not sent.[/bold blue]")
                     console.print("Headers:", self.session.headers)
                     console.print("Payload (data):", data)
+                    meta['tracker_status'][self.tracker]['status_message'] = "Debug mode enabled, not uploading."
 
         except UploadException:
             raise

@@ -90,22 +90,26 @@ class CBR():
         tag_lower = meta['tag'].lower()
         invalid_tags = ["nogrp", "nogroup", "unknown", "-unk-"]
 
-        if meta.get('audio_languages') and not meta.get('is_disc') == "BDMV":
-            audio_languages = set(meta['audio_languages'])
-            if len(audio_languages) >= 3:
-                audio_tag = ' MULTI'
-            elif len(audio_languages) == 2:
-                audio_tag = ' DUAL'
-            else:
-                audio_tag = ''
-        if audio_tag:
+        if meta.get('no_dual', False):
             if meta.get('dual_audio', False):
-                cbr_name = cbr_name.replace(f"{meta.get('dual_audio', '')}", '')
-            if '-' in cbr_name:
-                parts = cbr_name.rsplit('-', 1)
-                cbr_name = f"{parts[0]}{audio_tag}-{parts[1]}"
-            else:
-                cbr_name += audio_tag
+                cbr_name = cbr_name.replace("Dual-Audio ", '')
+        else:
+            if meta.get('audio_languages') and not meta.get('is_disc') == "BDMV":
+                audio_languages = set(meta['audio_languages'])
+                if len(audio_languages) >= 3:
+                    audio_tag = ' MULTI'
+                elif len(audio_languages) == 2:
+                    audio_tag = ' DUAL'
+                else:
+                    audio_tag = ''
+            if audio_tag:
+                if meta.get('dual_audio', False):
+                    cbr_name = cbr_name.replace("Dual-Audio ", '')
+                if '-' in cbr_name:
+                    parts = cbr_name.rsplit('-', 1)
+                    cbr_name = f"{parts[0]}{audio_tag}-{parts[1]}"
+                else:
+                    cbr_name += audio_tag
 
         if meta['tag'] == "" or any(invalid_tag in tag_lower for invalid_tag in invalid_tags):
             for invalid_tag in invalid_tags:
@@ -197,17 +201,19 @@ class CBR():
         else:
             console.print("[cyan]Request Data:")
             console.print(data)
+            meta['tracker_status'][self.tracker]['status_message'] = "Debug mode enabled, not uploading."
         open_torrent.close()
 
     async def search_existing(self, meta, disctype):
-        if not meta.get('audio_languages') or not meta.get('subtitle_languages'):
-            await process_desc_language(meta, desc=None, tracker=self.tracker)
-        portuguese_languages = ['Portuguese', 'Português']
-        if not any(lang in meta.get('audio_languages', []) for lang in portuguese_languages) and not any(lang in meta.get('subtitle_languages', []) for lang in portuguese_languages):
-            if not meta['unattended']:
-                console.print('[bold red]CBR requires at least one Portuguese audio or subtitle track.')
-            meta['skipping'] = "CBR"
-            return
+        if not meta['is_disc'] == "BDMV":
+            if not meta.get('audio_languages') or not meta.get('subtitle_languages'):
+                await process_desc_language(meta, desc=None, tracker=self.tracker)
+            portuguese_languages = ['Portuguese', 'Português']
+            if not any(lang in meta.get('audio_languages', []) for lang in portuguese_languages) and not any(lang in meta.get('subtitle_languages', []) for lang in portuguese_languages):
+                if not meta['unattended']:
+                    console.print('[bold red]CBR requires at least one Portuguese audio or subtitle track.')
+                meta['skipping'] = "CBR"
+                return
 
         dupes = []
 

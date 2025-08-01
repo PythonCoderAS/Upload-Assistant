@@ -32,6 +32,7 @@ from src.get_desc import gen_desc
 from discordbot import send_discord_notification, send_upload_status_notification
 from cogs.redaction import clean_meta_for_export
 from src.languages import process_desc_language
+from bin.get_mkbrr import ensure_mkbrr_binary
 
 
 cli_ui.setup(color='always', title="Audionut's Upload Assistant")
@@ -53,7 +54,7 @@ from src.prep import Prep  # noqa E402
 client = Clients(config=config)
 parser = Args(config)
 use_discord = False
-discord_config = config.get('discord')
+discord_config = config.get('DISCORD')
 if discord_config:
     use_discord = discord_config.get('use_discord', False)
 
@@ -327,7 +328,12 @@ async def process_meta(meta, base_dir, bot=None):
                             await cleanup()
                             gc.collect()
                             reset_terminal()
-                            raise Exception(f"Error during screenshot capture: {e}")
+                            try:
+                                raise Exception(f"Error during screenshot capture: {e}")
+                            except Exception as e2:
+                                if "workers" in str(e2):
+                                    console.print("[red]max workers issue, see https://github.com/Audionut/Upload-Assistant/wiki/ffmpeg---max-workers-issues[/red]")
+                                raise e2
 
                 except asyncio.CancelledError:
                     await cleanup_screenshot_temp_files(meta)
@@ -336,13 +342,13 @@ async def process_meta(meta, base_dir, bot=None):
                     gc.collect()
                     reset_terminal()
                     raise Exception("Error during screenshot capture")
-                except Exception as e:
+                except Exception:
                     await cleanup_screenshot_temp_files(meta)
                     await asyncio.sleep(0.1)
                     await cleanup()
                     gc.collect()
                     reset_terminal()
-                    raise Exception(f"Error during screenshot capture: {e}")
+                    raise Exception
                 finally:
                     await asyncio.sleep(0.1)
                     await cleanup()
@@ -395,8 +401,6 @@ async def process_meta(meta, base_dir, bot=None):
             except asyncio.CancelledError:
                 pass
 
-        if not meta['mkbrr']:
-            meta['mkbrr'] = int(config['DEFAULT'].get('mkbrr', False))
         torrent_path = os.path.abspath(f"{meta['base_dir']}/tmp/{meta['uuid']}/BASE.torrent")
         if not os.path.exists(torrent_path):
             reuse_torrent = None
@@ -417,11 +421,7 @@ async def process_meta(meta, base_dir, bot=None):
             if not meta['mkbrr']:
                 create_random_torrents(meta['base_dir'], meta['uuid'], meta['randomized'], meta['path'])
 
-        if 'saved_description' in meta and meta['saved_description'] is False:
-            meta = await gen_desc(meta)
-
-        if meta.get('description') in ('None', '', ' '):
-            meta['description'] = None
+        meta = await gen_desc(meta)
 
         with open(f"{meta['base_dir']}/tmp/{meta['uuid']}/meta.json", 'w') as f:
             json.dump(meta, f, indent=4)
@@ -598,6 +598,14 @@ async def do_the_thing(base_dir):
         if path.endswith('"'):
             path = path[:-1]
 
+        is_binary = await get_mkbrr_path(meta, base_dir)
+        if not meta['mkbrr']:
+            meta['mkbrr'] = int(config['DEFAULT'].get('mkbrr', False))
+        if meta['mkbrr'] and not is_binary:
+            console.print("[bold red]mkbrr binary is not available. Please ensure it is installed correctly.[/bold red]")
+            console.print("[bold red]Reverting to Torf[/bold red]")
+            meta['mkbrr'] = False
+
         queue, log_file = await handle_queue(path, meta, paths, base_dir)
 
         processed_files_count = 0
@@ -756,6 +764,15 @@ async def do_the_thing(base_dir):
                 pass
         if not sys.stdin.closed:
             reset_terminal()
+
+
+async def get_mkbrr_path(meta, base_dir=None):
+    try:
+        mkbrr_path = await ensure_mkbrr_binary(base_dir, debug=meta['debug'], version="v1.8.1")
+        return mkbrr_path
+    except Exception as e:
+        console.print(f"[red]Error setting up mkbrr binary: {e}[/red]")
+        return None
 
 
 def check_python_version():
