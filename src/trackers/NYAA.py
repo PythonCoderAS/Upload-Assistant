@@ -24,7 +24,7 @@ class NYAA(COMMON):
 
         self.session_cookie = self.config['TRACKERS'][self.tracker].get('session_cookie')
         self.session = ClientSession(headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36'}, cookies={'session': self.session_cookie} if self.session_cookie else None)
-        self.signature = "----\n[Created by a modified version of Audionut's Upload Assistant](https://github.com/Audionut/Upload-Assistant)"
+        self.signature = ""
 
     async def edit_torrent(self, meta, tracker, source_flag, torrent_filename="BASE"):
         if os.path.exists(f"{meta['base_dir']}/tmp/{meta['uuid']}/{torrent_filename}.torrent"):
@@ -55,7 +55,7 @@ class NYAA(COMMON):
             for image_number, image in enumerate(images, start=1):
                 img_url = image['img_url']
                 web_url = image['web_url']
-                screenshots_block += f"[![Screenshot ]({img_url})]({web_url}) "
+                screenshots_block += f"[![Screenshot]({img_url})]({web_url}) "
             desc_parts.append(screenshots_block)
 
         # BDInfo
