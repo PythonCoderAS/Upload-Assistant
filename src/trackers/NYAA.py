@@ -190,7 +190,7 @@ class NYAA(COMMON):
         is_remake = bool(meta.get("repack", ""))
 
         display_name = meta['name']
-        if tag == "-SubsPlease" and is_pack:
+        if meta['tag'] == "-SubsPlease" and is_pack:
             display_name = f'{meta["uuid"]} [Unofficial Batch]'
 
         data = {
