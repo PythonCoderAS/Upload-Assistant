@@ -33,10 +33,6 @@ class NYAA(COMMON):
                 if each not in ('announce', 'comment', 'creation date', 'created by', 'encoding', 'info'):
                     new_torrent.metainfo.pop(each, None)
             new_torrent.metainfo['announce'] = self.announce_url
-            if 'created by' in new_torrent.metainfo and isinstance(new_torrent.metainfo['created by'], str):
-                created_by = new_torrent.metainfo['created by']
-                if "mkbrr" in created_by.lower():
-                    new_torrent.metainfo['created by'] = f"{created_by} using Audionut's Upload Assistant"
 
             new_torrent.metainfo['comment'] = ''
             new_torrent.private = False
@@ -171,6 +167,17 @@ class NYAA(COMMON):
 
         cat_id = await self.get_category_id(meta)
 
+        approved_image_hosts = ['imgbox', 'imgbb', "bhd", "imgur", "postimg"]
+        url_host_mapping = {
+            "ibb.co": "imgbb",
+            "imgbox.com": "imgbox",
+            "beyondhd.co": "bhd",
+            "imgur.com": "imgur",
+            "postimg.cc": "postimg"
+        }
+
+        await check_hosts(meta, self.tracker, url_host_mapping=url_host_mapping, img_host_index=1, approved_image_hosts=approved_image_hosts)
+
         await self.generate_description(meta)
 
         description_path = f"{meta['base_dir']}/tmp/{meta['uuid']}/[{self.tracker}]DESCRIPTION.txt"
@@ -181,8 +188,12 @@ class NYAA(COMMON):
         is_pack = bool(meta.get('tv_pack', 0))
         is_remake = bool(meta.get("repack", ""))
 
+        display_name = meta['name']
+        if tag == "-SubsPlease" and is_pack:
+            display_name = f'{meta["uuid"]} [Unofficial Batch]'
+
         data = {
-            'display_name': meta['name'],
+            'display_name': display_name,
             'category': cat_id,
             'information': f"https://myanimelist.net/anime/{meta['mal']}" if meta.get('mal') else '',
             "description": description,
