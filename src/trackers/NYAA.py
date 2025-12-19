@@ -7,6 +7,7 @@ import requests
 from src.exceptions import UploadException
 from src.console import console
 from src.languages import has_english_language, has_language, has_language_other_than, process_desc_language
+from src.rehostimages import check_hosts
 from .COMMON import COMMON
 from torf import Torrent
 from aiohttp import ClientSession, FormData
